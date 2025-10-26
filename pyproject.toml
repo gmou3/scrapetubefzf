@@ -1,0 +1,21 @@
+[project]
+name = "scrapetubefzf"
+version = "0.1.0"
+description = "Search YouTube from the terminal and play/download videos via mpv/yt-dlp"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = ["scrapetube", "requests"]
+license = { text = "GPL-3.0-or-later" }
+keywords = ["youtube", "scrapetube", "fzf", "mpv", "yt-dlp", "cli"]
+
+[project.urls]
+homepage = "https://pypi.org/project/scrapetubefzf/"
+repository = "https://github.com/gmou3/scrapetubefzf"
+bug-tracker = "https://github.com/gmou3/scrapetubefzf/issues"
+
+[project.scripts]
+scrapetubefzf = "scrapetubefzf:main"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"

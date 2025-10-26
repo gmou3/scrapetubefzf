@@ -1,0 +1,43 @@
+# scrapetubefzf
+
+Search `YouTube` from the terminal, choose videos using `fzf` (with thumbnail previews), and play with `mpv` or download with `yt-dlp`.
+
+![Screenshot](screenshots/screenshot.png)
+
+## Installation
+
+Install package and create symlink in ~/.local/bin/:
+```bash
+make install
+```
+
+### Uninstall
+
+Remove package, symlink, and clean up all artifacts:
+```bash
+make uninstall
+```
+
+## Requirements
+
+- [Python](https://www.python.org/) 3.8+
+- [fzf](https://github.com/junegunn/fzf) (fuzzy finder)
+- [mpv](https://mpv.io/) (for playing videos)
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (for downloads)
+- One of the following for thumbnails:
+  - [ueberzug](https://github.com/ueber-devel/ueberzug) or [ueberzugpp](https://github.com/jstkdng/ueberzugpp) (recommended)
+  - [chafa](https://hpjansson.org/chafa/)
+  - [catimg](https://github.com/posva/catimg)
+
+## Usage
+
+```bash
+# Basic search with 20 results (default)
+scrapetubefzf
+
+# Search with custom number of results
+scrapetubefzf -n 50
+
+# Run mpv detached (terminal can close)
+scrapetubefzf -d
+```
