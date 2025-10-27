@@ -6,28 +6,23 @@ Search `YouTube` from the terminal, choose videos using `fzf` (with thumbnail pr
 
 ## Installation
 
-Install package and create symlink in ~/.local/bin/:
+Clone the repository:
+```bash
+git clone https://github.com/gmou3/scrapetubefzf.git
+cd scrapetubefzf
+```
+
+Install package and create symlink in `~/.local/bin/`:
 ```bash
 make install
 ```
 
 ### Uninstall
 
-Remove package, symlink, and clean up all artifacts:
+Remove package, symlink, and clean up build artifacts:
 ```bash
 make uninstall
 ```
-
-## Requirements
-
-- [Python](https://www.python.org/) 3.8+
-- [fzf](https://github.com/junegunn/fzf) (fuzzy finder)
-- [mpv](https://mpv.io/) (for playing videos)
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (for downloads)
-- One of the following for thumbnails:
-  - [ueberzug](https://github.com/ueber-devel/ueberzug) or [ueberzugpp](https://github.com/jstkdng/ueberzugpp) (recommended)
-  - [chafa](https://hpjansson.org/chafa/)
-  - [catimg](https://github.com/posva/catimg)
 
 ## Usage
 
@@ -41,3 +36,16 @@ scrapetubefzf -n 50
 # Run mpv detached (terminal can close)
 scrapetubefzf -d
 ```
+
+## Requirements
+
+- [Python](https://www.python.org/) 3.8+
+- [fzf](https://github.com/junegunn/fzf) (fuzzy finder)
+- [mpv](https://mpv.io/) (for playing videos)
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (for downloads)
+- One of the following for thumbnails:
+  - [ueberzug](https://github.com/ueber-devel/ueberzug) or [ueberzugpp](https://github.com/jstkdng/ueberzugpp) (recommended)
+  - [chafa](https://hpjansson.org/chafa/)
+  - [catimg](https://github.com/posva/catimg)
+
+
