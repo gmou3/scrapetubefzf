@@ -72,21 +72,23 @@ def get_video_info(videos: List[dict]) -> Dict[str, Dict[str, str]]:
         if owner_text and 'runs' in owner_text:
             channel = owner_text['runs'][0].get('text', 'Unknown')
 
-        # Get view count and published time
-        view_count = 'N/A views'
-        published = ''
-        view_count_text = video.get('viewCountText', {})
-        if view_count_text and 'simpleText' in view_count_text:
-            view_count = view_count_text['simpleText']
+        # Get video duration
+        duration = '--:--'
+        length_text = video.get('lengthText', {})
+        if length_text and 'simpleText' in length_text:
+            duration = length_text['simpleText']
 
+        # Get published time
+        published = 'Unknown'
         published_time = video.get('publishedTimeText', {})
         if published_time and 'simpleText' in published_time:
             published = published_time['simpleText']
 
-        # Get video duration
-        length_text = video.get('lengthText', {})
-        if length_text and 'simpleText' in length_text:
-            duration = length_text['simpleText']
+        # Get view count
+        view_count = 'N/A views'
+        view_count_text = video.get('viewCountText', {})
+        if view_count_text and 'simpleText' in view_count_text:
+            view_count = view_count_text['simpleText']
 
         video_map[video_id] = {
             'title': title,
