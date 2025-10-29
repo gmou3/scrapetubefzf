@@ -2,7 +2,6 @@
 
 IFS=$'\n'
 SELECTED=($@)
-URLS=""
 i=0
 for LINE in "${SELECTED[@]}"; do
    if (( i % 2 == 0 )); then
@@ -12,4 +11,5 @@ for LINE in "${SELECTED[@]}"; do
    ((i++))
 done
 
+touch "$CACHE_DIR/alt-d.$MAIN_PID"
 read -p "Press Enter to exit..."

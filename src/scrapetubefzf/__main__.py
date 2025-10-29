@@ -162,8 +162,9 @@ def main():
     # Set up environment for fzf
     fzf_env = os.environ.copy()
     fzf_env.update({
-        'CACHE_DIR': str(cache_dir),  # Make cache_dir available to preview script
+        'CACHE_DIR': str(cache_dir),
         'UEBERZUG_FIFO': str(ueberzug_fifo) if ueberzug_fifo else '',
+        'MAIN_PID': str(os.getpid())
     })
 
     fzf_result = subprocess.run(
@@ -221,6 +222,10 @@ def main():
             # Run mpv normally - terminal waits
             print(f"\nLaunching mpv with {len(selected_videos)} video(s)...")
             subprocess.run(['mpv', f'--playlist={playlist_path}'])
+    elif os.path.exists(f"{cache_dir}/alt-d.{os.getpid()}"):  # Alt-D
+        os.remove(f"{cache_dir}/alt-d.{os.getpid()}")
+    elif fzf_result.returncode == 130:  # ESC or Ctrl-C
+        print("No selection made.")
     else:
         sys.exit(1)
 
