@@ -16,6 +16,9 @@ bug-tracker = "https://github.com/gmou3/scrapetubefzf/issues"
 [project.scripts]
 scrapetubefzf = "scrapetubefzf:main"
 
+[tool.setuptools.package-data]
+scrapetubefzf = ["scripts/*.sh"]
+
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"

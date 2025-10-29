@@ -1,4 +1,4 @@
 build/
-src/__pycache__/
+src/scrapetubefzf/__pycache__/
 src/scrapetubefzf.egg-info/
 venv/

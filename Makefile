@@ -15,4 +15,4 @@ uninstall:
 	@echo "Removing virtual environment..."
 	rm -rf venv
 	@echo "Cleaning build artifacts..."
-	rm -rf build/ src/__pycache__/ src/scrapetubefzf.egg-info/
+	rm -rf build/ src/scrapetubefzf/__pycache__/ src/scrapetubefzf.egg-info/

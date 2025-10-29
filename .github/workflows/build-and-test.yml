@@ -18,4 +18,4 @@ jobs:
         pip install -r requirements.txt
         pip install -e .
     - name: Byte-compile
-      run: python -m py_compile src/scrapetubefzf.py
+      run: python -m py_compile src/scrapetubefzf/__main__.py
