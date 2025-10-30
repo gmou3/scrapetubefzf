@@ -227,6 +227,8 @@ def main():
     elif fzf_result.returncode == 130:  # ESC or Ctrl-C
         print("No selection made.")
     else:
+        if fzf_result.stderr:
+            print(f"{fzf_result.stderr.strip()}")
         sys.exit(1)
 
 

@@ -40,9 +40,9 @@ scrapetubefzf -d
 ## Requirements
 
 - [Python](https://www.python.org/) 3.8+
-- [fzf](https://github.com/junegunn/fzf) (fuzzy finder)
-- [mpv](https://mpv.io/) (for playing videos)
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (for downloads)
+- [fzf](https://github.com/junegunn/fzf) 0.56.0+
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp)
+- [mpv](https://mpv.io/)
 - One of the following for thumbnails:
   - [ueberzug](https://github.com/ueber-devel/ueberzug) or [ueberzugpp](https://github.com/jstkdng/ueberzugpp) (recommended)
   - [chafa](https://hpjansson.org/chafa/)
