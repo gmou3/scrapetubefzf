@@ -2,17 +2,18 @@
 
 install:
 	python -m venv venv
-	. venv/bin/activate && pip install .
+	venv/bin/pip install --upgrade pip
+	venv/bin/pip install .
 	@echo "Creating symlink in ~/.local/bin..."
-	ln -sf $(shell pwd)/venv/bin/scrapetubefzf ~/.local/bin/
+	ln -sf $$(pwd)/venv/bin/scrapetubefzf ~/.local/bin/
 
 uninstall:
-	@if [ -f venv/bin/activate ]; then \
-		. venv/bin/activate && pip uninstall -y scrapetubefzf; \
+	@if [ -d venv ]; then \
+		echo "Removing virtual environment..."; \
+		venv/bin/pip uninstall -y scrapetubefzf; \
+		rm -rf venv; \
 	fi
 	@echo "Removing symlink..."
 	rm -f ~/.local/bin/scrapetubefzf
-	@echo "Removing virtual environment..."
-	rm -rf venv
 	@echo "Cleaning build artifacts..."
 	rm -rf build/ src/scrapetubefzf/__pycache__/ src/scrapetubefzf.egg-info/
