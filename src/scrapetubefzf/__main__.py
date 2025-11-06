@@ -195,9 +195,16 @@ def main():
             sys.exit(1)
 
         # Display selected videos
-        print(f"\nSelected {len(selected_videos)} video(s):")
-        for i, video_id in enumerate(selected_videos, 1):
-            print(f"{i:>4d}. {video_map[video_id]['title']}")
+        selected_videos_str = ""
+        if len(selected_videos) == 1:
+            print(f"Selected 1 video:")
+            print(f"  {video_map[selected_videos[0]]['title']}")
+            selected_videos_str += f"{video_map[selected_videos[0]]['title']}"
+        else:
+            print(f"Selected {len(selected_videos)} videos:")
+            for i, video_id in enumerate(selected_videos, 1):
+                print(f"{i:>2d}. {video_map[video_id]['title']}")
+                selected_videos_str += f"{i:>2d}. {video_map[video_id]['title']}\n"
 
         # Create an M3U playlist with titles (in order to preload titles in mpv)
         playlist_content = "#EXTM3U\n"
@@ -210,6 +217,15 @@ def main():
             playlist_path = f.name
 
         if args.d:
+            # Send notification with notify-send (if available)
+            try:
+                subprocess.run(
+                    ["notify-send", "scrapetubefzf (Playing):", selected_videos_str],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+            except FileNotFoundError:
+                pass
             # Run mpv detached - terminal can close
             subprocess.Popen(
                 ['mpv', '--no-terminal', f'--playlist={playlist_path}'],
