@@ -10,6 +10,7 @@ import requests
 import argparse
 import readline
 import shutil
+import threading
 from pathlib import Path
 from typing import Dict, List
 
@@ -30,32 +31,33 @@ def search_youtube(query: str, limit: int) -> List[dict]:
     return results
 
 
-def download_thumbnail(video_id: str, cache_dir: Path) -> None:
-    """Download thumbnail for a video and save in cache directory."""
-    thumbnail_path = cache_dir / f"{video_id}.jpg"
+def download_thumbnails(video_map: Dict[str, Dict[str, str]], cache_dir: Path) -> None:
+    """Download thumbnails and save in cache directory."""
+    for video_id in video_map:
+        thumbnail_path = cache_dir / f"{video_id}.jpg"
 
-    if thumbnail_path.exists():
-        return
-
-    # Try different thumbnail qualities
-    urls = [
-        f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg",  # Highest quality (up to 1920x1080)
-        f"https://i.ytimg.com/vi/{video_id}/sddefault.jpg",      # Standard definition (640x480)
-        f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",      # High quality (480x360)
-        f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg",      # Medium quality (320x180)
-        f"https://i.ytimg.com/vi/{video_id}/default.jpg"         # Lowest quality (120x90)
-    ]
-
-    for url in urls:
-        try:
-            response = requests.get(url, timeout=5)
-            if response.status_code == 200:
-                with open(thumbnail_path, 'wb') as f:
-                    f.write(response.content)
-                return
-        except Exception as e:
-            print(f"Warning: Failed to download {url}: {e}", file=sys.stderr)
+        if thumbnail_path.exists():
             continue
+
+        # Try different thumbnail qualities
+        urls = [
+            f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg",  # Highest quality (up to 1920x1080)
+            f"https://i.ytimg.com/vi/{video_id}/sddefault.jpg",      # Standard definition (640x480)
+            f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",      # High quality (480x360)
+            f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg",      # Medium quality (320x180)
+            f"https://i.ytimg.com/vi/{video_id}/default.jpg"         # Lowest quality (120x90)
+        ]
+
+        for url in urls:
+            try:
+                response = requests.get(url, timeout=5)
+                if response.status_code == 200:
+                    with open(thumbnail_path, 'wb') as f:
+                        f.write(response.content)
+                    break
+            except Exception as e:
+                print(f"Warning: Failed to download {url}: {e}", file=sys.stderr)
+                continue
 
 
 def get_video_info(videos: List[dict]) -> Dict[str, Dict[str, str]]:
@@ -144,11 +146,9 @@ def main():
     # Download video info
     video_map = get_video_info(videos)
 
-    # Download thumbnails
-    for i, video_id in enumerate(video_map, 1):
-        print(f"\rDownloading thumbnails... ({i}/{len(videos)})", end="", flush=True)
-        download_thumbnail(video_id, cache_dir)
-    print()  # New line after progress
+    # Download thumbnails in the background
+    thread = threading.Thread(target=download_thumbnails, args=(video_map, cache_dir))
+    thread.start()
 
     # Prepare fzf input string
     fzf_str = ""
@@ -172,7 +172,7 @@ def main():
             '--read0', '--gap', '--ansi',
             '--delimiter', '\t', '--with-nth=2',  # Skip video ID in display
             '--prompt=Select videos: ',
-            '--preview', f'{PREVIEW_SCRIPT} {{}}',
+            '--preview', f'{CLEAR_SCRIPT} && {PREVIEW_SCRIPT} {{}}',
             '--bind', f'alt-d:execute({CLEAR_SCRIPT} && {DOWNLOAD_SCRIPT} {{+}})+abort',
             '--bind', 'resize:refresh-preview',
             '--header=Tab: multi-select | Enter: play | Alt+D: download'],
