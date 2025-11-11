@@ -147,7 +147,11 @@ def main():
     video_map = get_video_info(videos)
 
     # Download thumbnails in the background
-    thread = threading.Thread(target=download_thumbnails, args=(video_map, cache_dir))
+    thread = threading.Thread(
+        target=download_thumbnails,
+        args=(video_map, cache_dir),
+        daemon=True
+    )
     thread.start()
 
     # Prepare fzf input string
