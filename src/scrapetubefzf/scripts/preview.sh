@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 VIDEO_ID="${1%%	*}"  # Keep up to the tab
 THUMB_PATH="${CACHE_DIR}/$VIDEO_ID.jpg"
