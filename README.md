@@ -26,15 +26,18 @@ make uninstall
 
 ## Usage
 
-```bash
-# Basic search with 20 results (default)
-scrapetubefzf
+```
+usage: scrapetubefzf [-h] [-n N] [-d] [query ...]
 
-# Search with custom number of results
-scrapetubefzf -n 50
+Search YouTube from the terminal, choose videos using fzf (with thumbnail previews), and play with mpv or download with yt-dlp.
 
-# Run mpv detached (terminal can close)
-scrapetubefzf -d
+positional arguments:
+  query       search query
+
+options:
+  -h, --help  show this help message and exit
+  -n N        number of search results to fetch (default: 20)
+  -d          run mpv in detached mode (terminal can close)
 ```
 
 ## Requirements

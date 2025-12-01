@@ -106,9 +106,15 @@ def get_video_info(videos: List[dict]) -> Dict[str, Dict[str, str]]:
 def main():
     """Main function of scrapetubefzf."""
     # Parse arguments
-    parser = argparse.ArgumentParser(description='Search YouTube and play videos with mpv')
-    parser.add_argument('-d', action='store_true', help='Run mpv in detached mode (terminal can close)')
-    parser.add_argument('-n', type=int, default=20, help='Number of search results to fetch (default: 20)')
+    parser = argparse.ArgumentParser(
+        description=(
+            "Search YouTube from the terminal, choose videos using fzf (with thumbnail previews), "
+            "and play with mpv or download with yt-dlp."
+        )
+    )
+    parser.add_argument('-n', type=int, default=20, help='number of search results to fetch (default: 20)')
+    parser.add_argument('-d', action='store_true', help='run mpv in detached mode (terminal can close)')
+    parser.add_argument('query', nargs='*', help='search query')
     args = parser.parse_args()
 
     # Validate number of results
@@ -126,7 +132,10 @@ def main():
                 print("Installation: https://mpv.io/installation/")
             sys.exit(1)
 
-    query = input("Search: ").strip()
+    if args.query:
+        query = " ".join(args.query).strip()
+    else:
+        query = input("Search: ").strip()
     if not query:
         print("Error: Search query cannot be empty.")
         sys.exit(1)
