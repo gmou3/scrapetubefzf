@@ -209,15 +209,14 @@ def main():
 
         # Display selected videos
         selected_videos_str = ""
+        print(f"Selected {len(selected_videos)} video{'s' if len(selected_videos) != 1 else ''}:")
         if len(selected_videos) == 1:
-            print(f"Selected 1 video:")
-            print(f"  {video_map[selected_videos[0]]['title']}")
+            print(f"    {video_map[selected_videos[0]]['title']}")
             selected_videos_str += f"{video_map[selected_videos[0]]['title']}"
         else:
-            print(f"Selected {len(selected_videos)} videos:")
             for i, video_id in enumerate(selected_videos, 1):
-                print(f"{i:>2d}. {video_map[video_id]['title']}")
-                selected_videos_str += f"{i:>2d}. {video_map[video_id]['title']}\n"
+                print(f"{i:>4d}. {video_map[video_id]['title']}")
+                selected_videos_str += f"{i:>4d}. {video_map[video_id]['title']}\n"
 
         # Create an M3U playlist with titles (in order to preload titles in mpv)
         playlist_content = "#EXTM3U\n"
@@ -249,7 +248,7 @@ def main():
             )
         else:
             # Run mpv normally - terminal waits
-            print(f"\nLaunching mpv with {len(selected_videos)} video(s)...")
+            print(f"Launching mpv with {len(selected_videos)} video{'s' if len(selected_videos) != 1 else ''}...")
             subprocess.run(['mpv', f'--playlist={playlist_path}'])
     elif os.path.exists(f"{cache_dir}/alt-d.{os.getpid()}"):  # Alt-D
         os.remove(f"{cache_dir}/alt-d.{os.getpid()}")
