@@ -3,28 +3,32 @@
 IFS=$'\n'
 TAB=$'\t'
 SELECTED=($@)
-N=$(( ${#SELECTED[@]} / 2 ))  # Number of selected videos
+N=$(( ${#SELECTED[@]} / 2 ))  # Number of selected results
 
 # Show selections
-printf "Selected $N video$([ $N -ne 1 ] && echo "s"):\n"
+printf "Selected $N result$([ $N -ne 1 ] && echo "s"):\n"
 if [ $N -eq 1 ]; then
-    video_title="${SELECTED[0]#*$TAB}"  # Keep after the tab
-    printf "    %s\n" "$video_title"
+    result_title="${SELECTED[0]#*$TAB}"  # Keep after the tab
+    printf "    %s\n" "$result_title"
 else
     i=0
     while [ $i -lt $N ]; do
-        video_title="${SELECTED[$(( 2 * i ))]#*$TAB}"  # Keep after the tab
-        printf "%4d. %s\n" "$(( i + 1 ))" "$video_title"
+        result_title="${SELECTED[$(( 2 * i ))]#*$TAB}"  # Keep after the tab
+        printf "%4d. %s\n" "$(( i + 1 ))" "$result_title"
         ((i++))
     done
 fi
 
 # Download selections
-printf "Downloading $N video$([ $N -ne 1 ] && echo "s") with yt-dlp...\n"
+printf "Downloading $N selection$([ $N -ne 1 ] && echo "s") with yt-dlp...\n"
 i=0
 while [ $i -lt $N ]; do
-    video_id="${SELECTED[$(( 2 * i ))]%%$TAB*}"  # Keep up to the tab
-    yt-dlp "https://www.youtube.com/watch?v=$video_id"
+    selection_id="${SELECTED[$(( 2 * i ))]%%$TAB*}"  # Keep up to the tab
+    if [[ $selection_id =~ ^[a-zA-Z0-9_-]{11}$ ]]; then
+        yt-dlp "https://www.youtube.com/watch?v=$selection_id"
+    else
+        yt-dlp "https://www.youtube.com/channel/$selection_id"
+    fi
     ((i++))
 done
 

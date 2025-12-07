@@ -12,7 +12,7 @@ git clone https://github.com/gmou3/scrapetubefzf.git
 cd scrapetubefzf
 ```
 
-Install package and create symlink in `~/.local/bin/`:
+Build package and create symlink in `~/.local/bin/`:
 ```bash
 make install
 ```
@@ -39,6 +39,8 @@ options:
   -n N        number of search results to fetch (default: 20)
   -d          run mpv in detached mode (terminal can close)
 ```
+
+**Tip**: within fzf, use the left and right arrow keys to switch between video and channel results.
 
 ## Requirements
 
