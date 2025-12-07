@@ -286,7 +286,7 @@ def main():
             '--bind', f'right:reload(cat "{cache_dir}/channels")',
             '--bind', f'alt-d:execute({CLEAR_SCRIPT} && {DOWNLOAD_SCRIPT} {{+}})+abort',
             '--bind', 'resize:refresh-preview',
-            '--header=Tab: multi-select | Enter: play | Alt+D: download'],
+            '--header=Tab: multi-select | Enter: play | Alt+D: download | →: channels'],
         input=fzf_video_str,
         text=True,
         capture_output=True,
