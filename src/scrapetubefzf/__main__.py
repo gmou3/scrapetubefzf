@@ -6,6 +6,7 @@ import subprocess
 import sys
 import os
 import tempfile
+import time
 import requests
 import argparse
 import readline
@@ -14,18 +15,8 @@ import threading
 from pathlib import Path
 from typing import Dict, List
 
-from scrapetubefzf import PREVIEW_SCRIPT, CLEAR_SCRIPT, DOWNLOAD_SCRIPT
+from scrapetubefzf import PREVIEW_SCRIPT, CLEAR_SCRIPT, DOWNLOAD_SCRIPT, CACHE_DIR, VIDEOS_FILE, CHANNELS_FILE
 from scrapetubefzf.ueberzug import setup_ueberzug, cleanup_ueberzug
-
-
-def search_youtube(query: str, limit: int, type: str, results: list) -> List[dict]:
-    """Search YouTube and return result IDs."""
-    results_iterator = scrapetube.get_search(query, results_type=type)
-
-    for i, result in enumerate(results_iterator):
-        if i >= limit:
-            break
-        results.append(result)
 
 
 def download_url(url: str, save_path: Path) -> None:
@@ -39,10 +30,10 @@ def download_url(url: str, save_path: Path) -> None:
         print(f"Warning: Failed to download {url}: {e}", file=sys.stderr)
 
 
-def download_video_thumbnails(video_map: Dict[str, Dict[str, str]], cache_dir: Path) -> None:
+def download_video_thumbnails(video_map: Dict[str, Dict[str, str]]) -> None:
     """Download video thumbnails and save in cache directory."""
     for video_id in video_map:
-        thumbnail_path = cache_dir / f"{video_id}.jpg"
+        thumbnail_path = CACHE_DIR / f"{video_id}.jpg"
 
         if thumbnail_path.exists():
             continue
@@ -62,10 +53,10 @@ def download_video_thumbnails(video_map: Dict[str, Dict[str, str]], cache_dir: P
                 break
 
 
-def download_channel_thumbnails(channel_map: Dict[str, Dict[str, str]], cache_dir: Path) -> None:
+def download_channel_thumbnails(channel_map: Dict[str, Dict[str, str]]) -> None:
     """Download channel thumbnails and save in cache directory."""
     for channel_id, info in channel_map.items():
-        thumbnail_path = cache_dir / f"{channel_id}.jpg"
+        thumbnail_path = CACHE_DIR / f"{channel_id}.jpg"
 
         if thumbnail_path.exists():
             continue
@@ -80,11 +71,13 @@ def download_channel_thumbnails(channel_map: Dict[str, Dict[str, str]], cache_di
         download_url(url, thumbnail_path)
 
 
-def get_video_info(videos: List[dict]) -> Dict[str, Dict[str, str]]:
-    """Get video info and return it as a dictionary."""
-    video_map = {}
+def get_video_info(query: str, limit: int, titles_map: Dict[str, str]) -> None:
+    """Get video info and save it in a dictionary."""
+    f = open(VIDEOS_FILE, "a")
 
-    for video in videos:
+    video_map = {}
+    videos = scrapetube.get_search(query, limit=limit, results_type="video")
+    for i, video in enumerate(videos, 1):
         video_id = video.get('videoId', 'N/A')
         title = video.get('title', {}).get('runs', [{}])[0].get('text', 'No title')
 
@@ -112,6 +105,7 @@ def get_video_info(videos: List[dict]) -> Dict[str, Dict[str, str]]:
         if view_count_text and 'simpleText' in view_count_text:
             view_count = view_count_text['simpleText']
 
+        # Update dictionaries
         video_map[video_id] = {
             'title': title,
             'channel': channel,
@@ -119,15 +113,27 @@ def get_video_info(videos: List[dict]) -> Dict[str, Dict[str, str]]:
             'published': published,
             'view_count': view_count
         }
+        titles_map[video_id] = title
 
-    return video_map
+        # Write to videos file
+        video_str = f"{video_id}\t\033[1m{title}\033[0m\n{channel} | {duration} | {published} | {view_count}\0"
+        f.write(video_str)
+        f.flush()
 
+        if not i % 10:
+            threading.Thread(target=download_video_thumbnails, args=(video_map.copy(),), daemon=True).start()
 
-def get_channel_info(channels: List[dict]) -> Dict[str, Dict[str, str]]:
-    """Get channel info and return it as a dictionary."""
+    threading.Thread(target=download_video_thumbnails, args=(video_map.copy(),), daemon=True).start()
+    f.close()
+
+def get_channel_info(query: str, limit: int, titles_map: Dict[str, str]) -> None:
+    """Get channel info and save it in a dictionary."""
+    time.sleep(0.5)  # Give priority to video info thread
+    f = open(CHANNELS_FILE, "a")
+
     channel_map = {}
-
-    for channel in channels:
+    channels = scrapetube.get_search(query, limit=limit, results_type="channel")
+    for i, channel in enumerate(channels, 1):
         channel_id = channel.get('channelId', 'N/A')
 
         # Channel name
@@ -162,6 +168,7 @@ def get_channel_info(channels: List[dict]) -> Dict[str, Dict[str, str]]:
         if thumbnail_data:
             thumbnails = [thumb.get('url', '') for thumb in thumbnail_data]
 
+        # Update dictionaries
         channel_map[channel_id] = {
             'title': title,
             'description': description,
@@ -169,9 +176,22 @@ def get_channel_info(channels: List[dict]) -> Dict[str, Dict[str, str]]:
             'video_count': video_count,
             'thumbnail': thumbnails[-1]
         }
+        titles_map[channel_id] = title
 
-    return channel_map
+        # Write to channels file
+        channel_str = f"{channel_id}\t\033[1m{title}\033[0m\n{subscribers} | {video_count}"
+        if description:
+            channel_str += f" | {description}\0"
+        else:
+            channel_str += "\0"
+        f.write(channel_str)
+        f.flush()
 
+        if not i % 10:
+            threading.Thread(target=download_channel_thumbnails, args=(channel_map.copy(),), daemon=True).start()
+
+    threading.Thread(target=download_channel_thumbnails, args=(channel_map.copy(),), daemon=True).start()
+    f.close()
 
 def main():
     """Main function of scrapetubefzf."""
@@ -207,71 +227,25 @@ def main():
     else:
         query = input("Search: ").strip()
     if not query:
-        print("Error: Search query cannot be empty.")
+        print("Search query empty.")
         sys.exit(1)
 
-    # Create cache directory for thumbnails and other transient files
-    cache_dir = Path(tempfile.gettempdir()) / "scrapetubefzf"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-
-    # Search YouTube
-    print("Fetching...", end=" ", flush=True)
-    videos, channels = [], []
-    thread_v = threading.Thread(target=search_youtube, args=(query, args.n, "video", videos))
-    thread_c = threading.Thread(target=search_youtube, args=(query, args.n, "channel", channels))
+    # Search YouTube (download result info and thumbnails in the background)
+    titles_map = {}
+    thread_v = threading.Thread(target=get_video_info, args=(query, args.n, titles_map), daemon=True)
+    thread_c = threading.Thread(target=get_channel_info, args=(query, args.n, titles_map), daemon=True)
     thread_v.start()
     thread_c.start()
-    thread_v.join()
-    thread_c.join()
-
-    if not videos:
-        print("No results found.")
-        sys.exit(1)
-    print(f"fetched {len(videos)} results.", flush=True)
-
-    # Download result info (and thumbnails in the background)
-    video_map = get_video_info(videos)
-    thread_v = threading.Thread(
-        target=download_video_thumbnails,
-        args=(video_map, cache_dir),
-        daemon=True
-    )
-    thread_v.start()
-    channel_map = get_channel_info(channels)
-    thread_c = threading.Thread(
-        target=download_channel_thumbnails,
-        args=(channel_map, cache_dir),
-        daemon=True
-    )
-    thread_c.start()
-    results_map = {**video_map, **channel_map}
-
-    # Prepare fzf input files
-    fzf_video_str = ""
-    for video_id, info in video_map.items():
-        video_str = f"{video_id}\t\033[1m{info['title']}\033[0m\n{info['channel']} | {info['duration']} | {info['published']} | {info['view_count']}\0"
-        fzf_video_str += video_str
-    with open(cache_dir / "videos", "w") as f:
-        f.write(fzf_video_str)
-
-    fzf_channel_str = ""
-    for channel_id, info in channel_map.items():
-        channel_str = f"{channel_id}\t\033[1m{info['title']}\033[0m\n{info['subscribers']} | {info['video_count']}"
-        if info['description']:
-            channel_str += f" | {info['description']}\0"
-        else:
-            channel_str += "\0"
-        fzf_channel_str += channel_str
-    with open(cache_dir / "channels", "w") as f:
-        f.write(fzf_channel_str)
 
     # Initialize ueberzug if available
-    ueberzug_fifo = setup_ueberzug(cache_dir)
+    ueberzug_fifo = setup_ueberzug(CACHE_DIR)
+    my_tail = f"tail -fz -s 0.2 -n {args.n}"
 
     # Set up environment for fzf
     fzf_env = os.environ.copy()
     fzf_env.update({
-        'CACHE_DIR': str(cache_dir),
+        'FZF_DEFAULT_COMMAND': f'{my_tail} "{VIDEOS_FILE}"',
+        'CACHE_DIR': str(CACHE_DIR),
         'UEBERZUG_FIFO': str(ueberzug_fifo) if ueberzug_fifo else '',
         'MAIN_PID': str(os.getpid())
     })
@@ -280,14 +254,13 @@ def main():
         ['fzf', '--multi', '--reverse',
             '--read0', '--gap', '--ansi',
             '--delimiter', '\t', '--with-nth=2',  # Skip ID in display
-            '--prompt=Select: ',
+            '--prompt=Select: ', '--info=hidden',
             '--preview', f'{CLEAR_SCRIPT} && {PREVIEW_SCRIPT} {{}}',
-            '--bind', f'left:reload(cat "{cache_dir}/videos")',
-            '--bind', f'right:reload(cat "{cache_dir}/channels")',
+            '--bind', f'left:reload({my_tail} "{VIDEOS_FILE}")',
+            '--bind', f'right:reload({my_tail} "{CHANNELS_FILE}")',
             '--bind', f'alt-d:execute({CLEAR_SCRIPT} && {DOWNLOAD_SCRIPT} {{+}})+abort',
             '--bind', 'resize:refresh-preview',
-            '--header=Tab: multi-select | Enter: play | Alt+D: download | →: channels'],
-        input=fzf_video_str,
+            '--header=Tab: multi-select | Enter: play | Alt-d: download | →: channels'],
         text=True,
         capture_output=True,
         env=fzf_env
@@ -309,23 +282,23 @@ def main():
         selections_str = ""
         print(f"Selected {len(selections)} result{'s' if len(selections) != 1 else ''}:")
         if len(selections) == 1:
-            print(f"    {results_map[selections[0]]['title']}")
-            selections_str += f"{results_map[selections[0]]['title']}"
+            print(f"    {titles_map[selections[0]]}")
+            selections_str += f"{titles_map[selections[0]]}"
         else:
             for i, result_id in enumerate(selections, 1):
-                print(f"{i:>4d}. {results_map[result_id]['title']}")
-                selections_str += f"{i:>4d}. {results_map[result_id]['title']}\n"
+                print(f"{i:>4d}. {titles_map[result_id]}")
+                selections_str += f"{i:>4d}. {titles_map[result_id]}\n"
 
         # Create an M3U playlist with titles (in order to preload titles in mpv)
         playlist_content = "#EXTM3U\n"
         for result_id in selections:
-            if result_id in video_map:
-                playlist_content += f"#EXTINF:-1,{results_map[result_id]['title']}\nhttps://www.youtube.com/watch?v={result_id}\n"
-            if result_id in channel_map:
-                playlist_content += f"#EXTINF:-1,{results_map[result_id]['title']}\nhttps://www.youtube.com/channel/{result_id}\n"
+            if len(result_id) == 11:  # video
+                playlist_content += f"#EXTINF:-1,{titles_map[result_id]}\nhttps://www.youtube.com/watch?v={result_id}\n"
+            else:  # channel
+                playlist_content += f"#EXTINF:-1,{titles_map[result_id]}\nhttps://www.youtube.com/channel/{result_id}\n"
 
         # Write to a playlist file inside the cache directory
-        with tempfile.NamedTemporaryFile('w', delete=False, suffix=".m3u", dir=str(cache_dir)) as f:
+        with tempfile.NamedTemporaryFile('w', delete=False, suffix=".m3u", dir=str(CACHE_DIR)) as f:
             f.write(playlist_content)
             playlist_path = f.name
 
@@ -351,8 +324,8 @@ def main():
             # Run mpv normally - terminal waits
             print(f"Launching mpv with {len(selections)} selection{'s' if len(selections) != 1 else ''}...")
             subprocess.run(['mpv', f'--playlist={playlist_path}'])
-    elif os.path.exists(f"{cache_dir}/alt-d.{os.getpid()}"):  # Alt-D
-        os.remove(f"{cache_dir}/alt-d.{os.getpid()}")
+    elif os.path.exists(f"{CACHE_DIR}/alt-d.{os.getpid()}"):  # Alt-D
+        os.remove(f"{CACHE_DIR}/alt-d.{os.getpid()}")
     elif fzf_result.returncode == 130:  # ESC or Ctrl-C
         print("No selection made.")
     else:
