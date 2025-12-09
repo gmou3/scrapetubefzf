@@ -135,6 +135,7 @@ def get_video_info(query: str, limit: int, titles_map: Dict[str, str]) -> None:
     threading.Thread(target=download_video_thumbnails, args=(video_map.copy(),), daemon=True).start()
     f.close()
 
+
 def get_channel_info(query: str, limit: int, titles_map: Dict[str, str]) -> None:
     """Get channel info and save it in a dictionary."""
     time.sleep(0.5)  # Give priority to video info thread
@@ -202,6 +203,7 @@ def get_channel_info(query: str, limit: int, titles_map: Dict[str, str]) -> None
     threading.Thread(target=download_channel_thumbnails, args=(channel_map.copy(),), daemon=True).start()
     f.close()
 
+
 def main():
     """Main function of scrapetubefzf."""
     # Parse arguments
@@ -264,12 +266,12 @@ def main():
             '--read0', '--gap', '--ansi',
             '--delimiter', '\t', '--with-nth=2',  # Skip ID in display
             '--prompt=Select: ', '--info=hidden',
+            '--header=Tab: multi-select | Enter: play | Alt-d: download | →: channels',
             '--preview', f'{CLEAR_SCRIPT} && {PREVIEW_SCRIPT} {{}}',
-            '--bind', f'left:reload({my_tail} "{VIDEOS_FILE}")',
-            '--bind', f'right:reload({my_tail} "{CHANNELS_FILE}")',
-            '--bind', f'alt-d:execute({CLEAR_SCRIPT} && {DOWNLOAD_SCRIPT} {{+}})+abort',
             '--bind', 'resize:refresh-preview',
-            '--header=Tab: multi-select | Enter: play | Alt-d: download | →: channels'],
+            '--bind', f'left:reload({my_tail} "{VIDEOS_FILE}")+change-header(Tab: multi-select | Enter: play | Alt-d: download | →: channels)',
+            '--bind', f'right:reload({my_tail} "{CHANNELS_FILE}")+change-header(Tab: multi-select | Enter: play | Alt-d: download | ←: videos)',
+            '--bind', f'alt-d:execute({CLEAR_SCRIPT} && {DOWNLOAD_SCRIPT} {{+}})+abort'],
         text=True,
         capture_output=True,
         env=fzf_env
