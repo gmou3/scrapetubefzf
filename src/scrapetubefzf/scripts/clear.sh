@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 
-echo '{"action": "remove", "identifier": "fzf"}' >> "$UEBERZUG_FIFO"
+if [ -f "$UEBERZUG_FIFO" ]; then
+    echo '{"action": "remove", "identifier": "fzf"}' >> "$UEBERZUG_FIFO"
+fi

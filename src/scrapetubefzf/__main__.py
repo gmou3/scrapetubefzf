@@ -6,7 +6,6 @@ import subprocess
 import sys
 import os
 import tempfile
-import time
 import requests
 import argparse
 import readline
@@ -129,16 +128,12 @@ def get_video_info(query: str, limit: int, titles_map: Dict[str, str]) -> None:
         f.write(video_str)
         f.flush()
 
-        if not i % 10:
-            threading.Thread(target=download_video_thumbnails, args=(video_map.copy(),), daemon=True).start()
-
-    threading.Thread(target=download_video_thumbnails, args=(video_map.copy(),), daemon=True).start()
+    threading.Thread(target=download_video_thumbnails, args=(video_map,), daemon=True).start()
     f.close()
 
 
 def get_channel_info(query: str, limit: int, titles_map: Dict[str, str]) -> None:
     """Get channel info and save it in a dictionary."""
-    time.sleep(0.5)  # Give priority to video info thread
     f = open(CHANNELS_FILE, "a")
 
     channel_map = {}
@@ -197,10 +192,7 @@ def get_channel_info(query: str, limit: int, titles_map: Dict[str, str]) -> None
         f.write(channel_str)
         f.flush()
 
-        if not i % 10:
-            threading.Thread(target=download_channel_thumbnails, args=(channel_map.copy(),), daemon=True).start()
-
-    threading.Thread(target=download_channel_thumbnails, args=(channel_map.copy(),), daemon=True).start()
+    threading.Thread(target=download_channel_thumbnails, args=(channel_map,), daemon=True).start()
     f.close()
 
 
