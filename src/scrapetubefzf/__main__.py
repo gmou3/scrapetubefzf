@@ -22,10 +22,19 @@ from scrapetubefzf.ueberzug import setup_ueberzug, cleanup_ueberzug
 def download_url(url: str, save_path: Path) -> None:
     """Download a file from a URL and save it to the specified path."""
     try:
+        tmp_path = save_path.with_suffix(".tmp")
+
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
-            with open(save_path, 'wb') as f:
+            with open(tmp_path, 'wb') as f:
                 f.write(response.content)
+
+        try:
+            # Atomic move: PREVIEW_SCRIPT will not see partial data
+            os.replace(tmp_path, save_path)
+        except OSError as e:
+            pass
+
     except Exception as e:
         print(f"Warning: Failed to download {url}: {e}", file=sys.stderr)
 
