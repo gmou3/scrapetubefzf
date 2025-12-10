@@ -10,6 +10,7 @@ Functions:
 """
 from pathlib import Path
 import os
+import shutil
 import subprocess
 import sys
 from typing import Optional, Tuple
@@ -22,7 +23,7 @@ def setup_ueberzug(cache_dir: Path) -> Optional[Path]:
     or initialization fails.
     """
     # Detect ueberzug or ueberzugpp
-    if subprocess.run(['bash', '-c', 'command -v ueberzug || command -v ueberzugpp'], capture_output=True).returncode != 0:
+    if not (shutil.which("ueberzug") or shutil.which("ueberzugpp")):
         return None
 
     ueberzug_fifo = cache_dir / f"ueberzug.{os.getpid()}"
@@ -31,8 +32,7 @@ def setup_ueberzug(cache_dir: Path) -> Optional[Path]:
             os.mkfifo(ueberzug_fifo)
 
         # Prefer ueberzugpp if available
-        ueberzug_cmd = 'ueberzugpp' if subprocess.run(['bash', '-c', 'command -v ueberzugpp'], capture_output=True).returncode == 0 else 'ueberzug'
-
+        ueberzug_cmd = 'ueberzugpp' if shutil.which("ueberzugpp") else 'ueberzug'
         ueberzug_process = subprocess.Popen(
             [ueberzug_cmd, 'layer', '--silent'],
             stdin=subprocess.PIPE,

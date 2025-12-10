@@ -69,7 +69,7 @@ def download_channel_thumbnails(channel_map: Dict[str, Dict[str, str]]) -> None:
         if thumbnail_path.exists():
             continue
 
-        url = info.get("thumbnail", "")
+        url = info.get('thumbnail', '')
         if not url:
             continue
         url = url.lstrip('/')
@@ -84,34 +84,13 @@ def get_video_info(query: str, limit: int, titles_map: Dict[str, str]) -> None:
     f = open(VIDEOS_FILE, "a")
 
     video_map = {}
-    videos = scrapetube.get_search(query, limit=limit, results_type="video")
-    for i, video in enumerate(videos, 1):
+    for video in scrapetube.get_search(query, limit):
         video_id = video.get('videoId', 'N/A')
         title = video.get('title', {}).get('runs', [{}])[0].get('text', 'No title')
-
-        # Get channel name
-        channel = 'Unknown'
-        owner_text = video.get('ownerText', {})
-        if owner_text and 'runs' in owner_text:
-            channel = owner_text['runs'][0].get('text', 'Unknown')
-
-        # Get video duration
-        duration = '--:--'
-        length_text = video.get('lengthText', {})
-        if length_text and 'simpleText' in length_text:
-            duration = length_text['simpleText']
-
-        # Get published time
-        published = 'Unknown'
-        published_time = video.get('publishedTimeText', {})
-        if published_time and 'simpleText' in published_time:
-            published = published_time['simpleText']
-
-        # Get view count
-        view_count = 'N/A views'
-        view_count_text = video.get('viewCountText', {})
-        if view_count_text and 'simpleText' in view_count_text:
-            view_count = view_count_text['simpleText']
+        channel = video.get('ownerText', {}).get('runs', [{}])[0].get('text', 'Unknown')
+        duration = video.get('lengthText', {}).get('simpleText', '--:--')
+        published = video.get('publishedTimeText', {}).get('simpleText', 'Unknown')
+        view_count = video.get('viewCountText', {}).get('simpleText', 'N/A')
 
         # Update dictionaries
         video_map[video_id] = {
@@ -137,41 +116,13 @@ def get_channel_info(query: str, limit: int, titles_map: Dict[str, str]) -> None
     f = open(CHANNELS_FILE, "a")
 
     channel_map = {}
-    channels = scrapetube.get_search(query, limit=limit, results_type="channel")
-    for i, channel in enumerate(channels, 1):
+    for channel in scrapetube.get_search(query, limit, results_type="channel"):
         channel_id = channel.get('channelId', 'N/A')
-
-        # Channel name
-        title = 'Unknown'
-        title_text = channel.get('title', {})
-        if title_text and 'simpleText' in title_text:
-            title = title_text['simpleText']
-        elif title_text and 'runs' in title_text:
-            title = title_text['runs'][0].get('text', title)
-
-        # Get channel description
-        description = ''
-        desc_text = channel.get('descriptionSnippet', {})
-        if desc_text and 'runs' in desc_text:
-            description = ''.join([run.get('text', '') for run in desc_text['runs']])
-
-        # Get subscriber count
-        subscribers = 'N/A'
-        sub_text = channel.get('subscriberCountText', {})
-        if sub_text and 'simpleText' in sub_text:
-            subscribers = sub_text['simpleText']
-
-        # Get video count
-        video_count = 'N/A'
-        video_count_text = channel.get('videoCountText', {})
-        if video_count_text and 'simpleText' in video_count_text:
-            video_count = video_count_text['simpleText']
-
-        # Get thumbnails URLs
-        thumbnails = []
-        thumbnail_data = channel.get('thumbnail', {}).get('thumbnails', [])
-        if thumbnail_data:
-            thumbnails = [thumb.get('url', '') for thumb in thumbnail_data]
+        title = channel.get('title', {}).get('simpleText', 'Unknown')
+        description = ''.join([run.get('text', '') for run in channel.get('descriptionSnippet', {}).get('runs', [{}])])
+        subscribers = channel.get('subscriberCountText', {}).get('simpleText', 'N/A')
+        video_count = channel.get('videoCountText', {}).get('simpleText', 'N/A')
+        thumbnails = [thumb.get('url', '') for thumb in channel.get('thumbnail', {}).get('thumbnails', [])]
 
         # Update dictionaries
         channel_map[channel_id] = {
