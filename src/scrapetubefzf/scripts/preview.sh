@@ -36,7 +36,7 @@ fi
 
 # Show thumbnail
 if [ -f "$THUMB_PATH" ]; then
-    if [ -n "$UEBERZUG_FIFO" ]; then
+    if [ -p "$UEBERZUG_FIFO" ]; then
         echo '{"action": "add", "identifier": "fzf", "x": '$FZF_PREVIEW_LEFT', "y": '$FZF_PREVIEW_TOP', "max_width": '$FZF_PREVIEW_COLUMNS', "max_height": '$FZF_PREVIEW_LINES', "path": "'$THUMB_PATH'"}' >> "$UEBERZUG_FIFO"
     elif command -v chafa >/dev/null 2>&1; then
         chafa -s "$((FZF_PREVIEW_COLUMNS))x$((FZF_PREVIEW_LINES))" "$THUMB_PATH"
