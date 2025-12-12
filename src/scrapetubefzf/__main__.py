@@ -1,5 +1,16 @@
 #!/usr/bin/env python
-"""Main module for scrapetubefzf."""
+"""
+Main module for scrapetubefzf.
+
+Functions:
+- download_url: Download a file from a URL and save it to the specified path.
+- download_video_thumbnails: Download video thumbnails and save in cache directory.
+- download_channel_thumbnails: Download channel thumbnails and save in cache directory.
+- get_video_info: Get video info and save it in a dictionary.
+- get_channel_info: Get channel info and save it in a dictionary.
+- run_fzf: Run fzf with the appropriate environment and options.
+- main: Main function of scrapetubefzf.
+"""
 
 import scrapetube
 import subprocess
@@ -35,7 +46,9 @@ def download_url(url: str, save_path: Path) -> None:
             pass
 
     except Exception as e:
-        print(f"Warning: Failed to download {url}: {e}", file=sys.stderr)
+        log_path = os.path.join(CACHE_DIR, "download.log")
+        with open(log_path, "a") as f:
+            f.write(f"Warning: Failed to download {url}: {e}\n")
 
 
 def download_video_thumbnails(video_map: Dict[str, Dict[str, str]]) -> None:
@@ -147,53 +160,10 @@ def get_channel_info(query: str, limit: int, titles_map: Dict[str, str]) -> None
     f.close()
 
 
-def main():
-    """Main function of scrapetubefzf."""
-    # Parse arguments
-    parser = argparse.ArgumentParser(
-        description=(
-            "Search YouTube from the terminal, choose videos using fzf (with thumbnail previews), "
-            "and play with mpv or download with yt-dlp."
-        )
-    )
-    parser.add_argument('-n', type=int, default=20, help='number of search results to fetch (default: 20)')
-    parser.add_argument('-d', action='store_true', help='run mpv in detached mode (terminal can close)')
-    parser.add_argument('query', nargs='*', help='search query')
-    args = parser.parse_args()
-
-    # Validate number of results
-    if args.n <= 0:
-        print("Error: -n must be a positive integer.")
-        sys.exit(1)
-
-    # Ensure required commands exist
-    for cmd in ['fzf', 'mpv']:
-        if not shutil.which(cmd):
-            print(f"Error: {cmd} not found. Please install {cmd} first.")
-            if cmd == 'fzf':
-                print("Installation: https://github.com/junegunn/fzf#installation")
-            elif cmd == 'mpv':
-                print("Installation: https://mpv.io/installation/")
-            sys.exit(1)
-
-    if args.query:
-        query = " ".join(args.query).strip()
-    else:
-        query = input("Search: ").strip()
-    if not query:
-        print("Search query empty.")
-        sys.exit(1)
-
-    # Search YouTube (download result info and thumbnails in the background)
-    titles_map = {}
-    thread_v = threading.Thread(target=get_video_info, args=(query, args.n, titles_map), daemon=True)
-    thread_c = threading.Thread(target=get_channel_info, args=(query, args.n, titles_map), daemon=True)
-    thread_v.start()
-    thread_c.start()
-
+def run_fzf(n: int) -> subprocess.CompletedProcess:
     # Initialize ueberzug if available
     ueberzug_fifo = setup_ueberzug(CACHE_DIR)
-    my_tail = f"tail -fz -s 0.2 -n {args.n}"
+    my_tail = f"tail -fz -s 0.2 -n {n}"
 
     # Set up environment for fzf
     fzf_env = os.environ.copy()
@@ -223,6 +193,59 @@ def main():
     if ueberzug_fifo:
         subprocess.run([CLEAR_SCRIPT], env=fzf_env)
         cleanup_ueberzug(ueberzug_fifo)
+
+    return fzf_result
+
+
+def main():
+    """Main function of scrapetubefzf."""
+    # Parse arguments
+    parser = argparse.ArgumentParser(
+        description=(
+            "Search YouTube from the terminal, choose videos using fzf (with thumbnail previews), "
+            "and play with mpv or download with yt-dlp."
+        )
+    )
+    parser.add_argument('-n', type=int, default=20, help='number of search results to fetch (default: 20)')
+    parser.add_argument('-d', action='store_true', help='run mpv in detached mode (terminal can close)')
+    parser.add_argument('query', nargs='*', help='search query')
+    args = parser.parse_args()
+
+    # Validate number of results
+    if args.n <= 0:
+        print("Error: -n must be a positive integer.")
+        sys.exit(1)
+
+    # Ensure required commands exist
+    for cmd, url in {
+        'fzf':'https://github.com/junegunn/fzf#installation',
+        'yt-dlp':'https://github.com/yt-dlp/yt-dlp/wiki/Installation',
+        'mpv':'https://mpv.io/installation/'
+    }.items():
+        if not shutil.which(cmd):
+            print(f"Error: {cmd} not found. Installation: {url}")
+            sys.exit(1)
+
+    if args.query:
+        query = " ".join(args.query).strip()
+    else:
+        try:
+            query = input("Search: ").strip()
+        except KeyboardInterrupt:
+            print("\nExiting...")
+            sys.exit(1)
+    if not query:
+        print("Search query empty.")
+        sys.exit(1)
+
+    # Search YouTube (download result info and thumbnails in the background)
+    titles_map = {}
+    thread_v = threading.Thread(target=get_video_info, args=(query, args.n, titles_map), daemon=True)
+    thread_c = threading.Thread(target=get_channel_info, args=(query, args.n, titles_map), daemon=True)
+    thread_v.start()
+    thread_c.start()
+
+    fzf_result = run_fzf(args.n)
 
     if fzf_result.returncode == 0:
         fzf_lines = fzf_result.stdout.strip().split('\n')
