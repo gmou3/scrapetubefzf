@@ -49,8 +49,9 @@ options:
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp)
 - [mpv](https://mpv.io/)
 - One of the following for thumbnails:
-  - [ueberzug](https://github.com/ueber-devel/ueberzug) or [ueberzugpp](https://github.com/jstkdng/ueberzugpp) (recommended)
+  - [ueberzugpp](https://github.com/jstkdng/ueberzugpp) (recommended, esp. on
+    X11)
+  - [kitty](https://github.com/kovidgoyal/kitty) (works within a `kitty`
+    terminal employing `kitty icat`)
   - [chafa](https://hpjansson.org/chafa/)
   - [catimg](https://github.com/posva/catimg)
-
-
