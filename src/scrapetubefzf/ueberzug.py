@@ -1,8 +1,7 @@
 """Helpers to initialize and cleanup ueberzug external processes.
 
-This module encapsulates creation of a FIFO used to send commands to
-`ueberzug` / `ueberzugpp` and the helper `tail` process which pipes the
-FIFO into ueberzug's stdin.
+This module encapsulates creation of a FIFO used to send commands to `ueberzug`
+and the helper `tail` process which pipes the FIFO into ueberzug's stdin.
 
 Functions:
   - setup_ueberzug(cache_dir: Path) -> Optional[Path]
@@ -19,11 +18,10 @@ from typing import Optional, Tuple
 def setup_ueberzug(cache_dir: Path) -> Optional[Path]:
     """Initialize ueberzug process and FIFO if available.
 
-    Returns ueberzug_fifo or None when ueberzug/ueberzugpp is not available
-    or initialization fails.
+    Returns `ueberzug_fifo` or `None` when ueberzug is not available or
+    initialization fails.
     """
-    # Detect ueberzug or ueberzugpp
-    if not (shutil.which("ueberzug") or shutil.which("ueberzugpp")):
+    if not shutil.which("ueberzug"):
         return None
 
     ueberzug_fifo = cache_dir / f"ueberzug.{os.getpid()}"
@@ -31,10 +29,8 @@ def setup_ueberzug(cache_dir: Path) -> Optional[Path]:
         if not ueberzug_fifo.exists():
             os.mkfifo(ueberzug_fifo)
 
-        # Prefer ueberzugpp if available
-        ueberzug_cmd = 'ueberzugpp' if shutil.which("ueberzugpp") else 'ueberzug'
         ueberzug_process = subprocess.Popen(
-            [ueberzug_cmd, 'layer', '--silent'],
+            ['ueberzug', 'layer', '--silent'],
             stdin=subprocess.PIPE,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
