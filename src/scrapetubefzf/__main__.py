@@ -161,9 +161,15 @@ def get_channel_info(query: str, limit: int, titles_map: Dict[str, str]) -> None
 
 
 def run_fzf(n: int) -> subprocess.CompletedProcess:
+    # Check for GNU tail (-z support)
+    tail_bin = shutil.which("gtail") or shutil.which("tail")
+    result = subprocess.run([tail_bin, '-z', '/dev/null'], capture_output=True)
+    if result.returncode != 0:
+        sys.exit("GNU tail is required. On macOS: brew install coreutils")
+    my_tail = f"{tail_bin} -fz -s 0.2 -n {n}"
+
     # Initialize ueberzug if available
     ueberzug_fifo = setup_ueberzug(CACHE_DIR)
-    my_tail = f"tail -fz -s 0.2 -n {n}"
 
     # Set up environment for fzf
     fzf_env = os.environ.copy()
