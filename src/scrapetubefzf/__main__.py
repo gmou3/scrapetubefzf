@@ -180,28 +180,29 @@ def run_fzf(n: int) -> subprocess.CompletedProcess:
         'MAIN_PID': str(os.getpid())
     })
 
+    # FIX: We wrap the commands that use '&&' inside 'bash -c' 
+    # This ensures that even if Other Shell is your default shell(I'm using Nushell), 
     fzf_result = subprocess.run(
         ['fzf', '--multi', '--reverse',
             '--read0', '--gap', '--ansi',
             '--delimiter', '\t', '--with-nth=2',  # Skip ID in display
             '--prompt=Select: ', '--info=hidden',
             '--header=Tab: multi-select | Enter: play | Alt-d: download | →: channels',
-            '--preview', f'{CLEAR_SCRIPT} && {PREVIEW_SCRIPT} {{}}',
+            '--preview', f'bash -c "{CLEAR_SCRIPT} && {PREVIEW_SCRIPT} {{}}" ',
             '--bind', 'resize:refresh-preview',
             '--bind', f'left:reload({my_tail} "{VIDEOS_FILE}")+change-header(Tab: multi-select | Enter: play | Alt-d: download | →: channels)',
             '--bind', f'right:reload({my_tail} "{CHANNELS_FILE}")+change-header(Tab: multi-select | Enter: play | Alt-d: download | ←: videos)',
-            '--bind', f'alt-d:execute({CLEAR_SCRIPT} && {DOWNLOAD_SCRIPT} {{+}})+abort'],
+            '--bind', f'alt-d:execute(bash -c "{CLEAR_SCRIPT} && {DOWNLOAD_SCRIPT} {{+}}")+abort'],
         text=True,
         capture_output=True,
         env=fzf_env
     )
 
     if ueberzug_fifo:
-        subprocess.run([CLEAR_SCRIPT], env=fzf_env)
+        subprocess.run([f'bash -c "{CLEAR_SCRIPT}"'], shell=True, env=fzf_env) # Added bash wrapper here too
         cleanup_ueberzug(ueberzug_fifo)
 
     return fzf_result
-
 
 def main():
     """Main function of scrapetubefzf."""
