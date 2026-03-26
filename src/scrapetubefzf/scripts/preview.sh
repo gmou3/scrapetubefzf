@@ -38,17 +38,18 @@ fi
 if [ -f "$THUMB_PATH" ]; then
     if [ -p "$UEBERZUG_FIFO" ]; then
         echo '{"action": "add", "identifier": "fzf", "x": '$FZF_PREVIEW_LEFT', "y": '$FZF_PREVIEW_TOP', "max_width": '$FZF_PREVIEW_COLUMNS', "max_height": '$FZF_PREVIEW_LINES', "path": "'$THUMB_PATH'"}' >> "$UEBERZUG_FIFO"
-    elif [ -n "$KITTY_WINDOW_ID" ]; then
-        kitty icat --clear --stdin=no --transfer-mode=memory \
-        --unicode-placeholder --scale-up \
-        --place="$((FZF_PREVIEW_COLUMNS))x$((FZF_PREVIEW_LINES))@0x0" \
-        "$THUMB_PATH"
+	elif command -v kitten >/dev/null 2>&1 || command -v kitty >/dev/null 2>&1; then # Kitty Supported Terminal, needs kitten installed
+		CMD=$(command -v kitten || command -v kitty)
+		$CMD icat --clear --stdin=no --transfer-mode=memory \
+		--unicode-placeholder --scale-up \
+		--place="$((FZF_PREVIEW_COLUMNS))x$((FZF_PREVIEW_LINES))@0x0" \
+		"$THUMB_PATH"
     elif command -v chafa >/dev/null 2>&1; then
         chafa -s "$((FZF_PREVIEW_COLUMNS))x$((FZF_PREVIEW_LINES))" "$THUMB_PATH"
     elif command -v catimg >/dev/null 2>&1; then
         catimg -w "$((2 * FZF_PREVIEW_COLUMNS))" "$THUMB_PATH"
     else
         echo "Thumbnail available at: $THUMB_PATH"
-        echo "Install ueberzug, chafa, or catimg to view thumbnails in terminal"
+        echo "Install ueberzug, chafa, or catimg to view thumbnails in terminal for kitty protocol supported terminal install kitten"
     fi
 fi
