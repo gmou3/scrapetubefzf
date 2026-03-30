@@ -186,6 +186,7 @@ def run_fzf(n: int) -> subprocess.CompletedProcess:
             '--delimiter', '\t', '--with-nth=2',  # Skip ID in display
             '--prompt=Select: ', '--info=hidden',
             '--header=Tab: multi-select | Enter: play | Alt-d: download | →: channels',
+            '--with-shell', 'bash -c',
             '--preview', f'{CLEAR_SCRIPT} && {PREVIEW_SCRIPT} {{}}',
             '--bind', 'resize:refresh-preview',
             '--bind', f'left:reload({my_tail} "{VIDEOS_FILE}")+change-header(Tab: multi-select | Enter: play | Alt-d: download | →: channels)',
