@@ -38,18 +38,27 @@ fi
 if [ -f "$THUMB_PATH" ]; then
     if [ -p "$UEBERZUG_FIFO" ]; then
         echo '{"action": "add", "identifier": "fzf", "x": '$FZF_PREVIEW_LEFT', "y": '$FZF_PREVIEW_TOP', "max_width": '$FZF_PREVIEW_COLUMNS', "max_height": '$FZF_PREVIEW_LINES', "path": "'$THUMB_PATH'"}' >> "$UEBERZUG_FIFO"
-	elif command -v kitten >/dev/null 2>&1 || command -v kitty >/dev/null 2>&1; then # Kitty Supported Terminal, needs kitten installed
-		CMD=$(command -v kitten || command -v kitty)
-		$CMD icat --clear --stdin=no --transfer-mode=memory \
-		--unicode-placeholder --scale-up \
-		--place="$((FZF_PREVIEW_COLUMNS))x$((FZF_PREVIEW_LINES))@0x0" \
-		"$THUMB_PATH"
+	elif command -v imgcat >/dev/null 2>&1 && \
+         { [[ "$TERM_PROGRAM" =~ ^(WezTerm|iTerm.app)$ ]] || \
+           [[ -n "$WEZTERM_PANE" ]] || \
+           [[ -n "$ITERM_SESSION_ID" ]]; }; then
+        imgcat --width "$FZF_PREVIEW_COLUMNS" --height "$FZF_PREVIEW_LINES" "$THUMB_PATH"
+    elif command -v kitten >/dev/null 2>&1 && \
+         { [[ -n "$KITTY_WINDOW_ID" ]] || \
+           [[ -n "$GHOSTTY_BIN_DIR" ]] || \ # Robust
+           [[ "$TERM" == *ghostty* ]] || \ # if xterm-* used
+           [[ "$TERM" == *kitty* ]]; }; then
+        kitten icat --clear --stdin=no --transfer-mode=memory \
+            --unicode-placeholder --scale-up \
+            --place="$((FZF_PREVIEW_COLUMNS))x$((FZF_PREVIEW_LINES))@0x0" \
+            "$THUMB_PATH"
     elif command -v chafa >/dev/null 2>&1; then
         chafa -s "$((FZF_PREVIEW_COLUMNS))x$((FZF_PREVIEW_LINES))" "$THUMB_PATH"
     elif command -v catimg >/dev/null 2>&1; then
         catimg -w "$((2 * FZF_PREVIEW_COLUMNS))" "$THUMB_PATH"
     else
         echo "Thumbnail available at: $THUMB_PATH"
-        echo "Install ueberzug, chafa, or catimg to view thumbnails in terminal for kitty protocol supported terminal install kitten"
+        echo "Install ueberzug, kitty, chafa, or catimg to view thumbnails in "
+        echo "the terminal"
     fi
 fi

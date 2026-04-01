@@ -51,7 +51,7 @@ options:
 - One of the following for thumbnails:
   - [ueberzugpp](https://github.com/jstkdng/ueberzugpp) (recommended, esp. on
     X11)
-  - [kitty](https://github.com/kovidgoyal/kitty) (works within a `kitty`
-    terminal employing `kitty icat`)
+  - [kitty](https://github.com/kovidgoyal/kitty) (works within `kitty` and
+    `ghostty` terminals employing `kitten icat`)
   - [chafa](https://hpjansson.org/chafa/)
   - [catimg](https://github.com/posva/catimg)
