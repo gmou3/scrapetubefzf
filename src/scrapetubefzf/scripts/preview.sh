@@ -38,11 +38,6 @@ fi
 if [ -f "$THUMB_PATH" ]; then
     if [ -p "$UEBERZUG_FIFO" ]; then
         echo '{"action": "add", "identifier": "fzf", "x": '$FZF_PREVIEW_LEFT', "y": '$FZF_PREVIEW_TOP', "max_width": '$FZF_PREVIEW_COLUMNS', "max_height": '$FZF_PREVIEW_LINES', "path": "'$THUMB_PATH'"}' >> "$UEBERZUG_FIFO"
-	elif command -v imgcat >/dev/null 2>&1 && \
-         { [[ "$TERM_PROGRAM" =~ ^(WezTerm|iTerm.app)$ ]] || \
-           [[ -n "$WEZTERM_PANE" ]] || \
-           [[ -n "$ITERM_SESSION_ID" ]]; }; then
-        imgcat --width "$FZF_PREVIEW_COLUMNS" --height "$FZF_PREVIEW_LINES" "$THUMB_PATH"
     elif command -v kitten >/dev/null 2>&1 && \
          { [[ -n "$KITTY_WINDOW_ID" ]] || \
            [[ -n "$GHOSTTY_BIN_DIR" ]] || \ # Robust
