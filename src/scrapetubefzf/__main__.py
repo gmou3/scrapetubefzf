@@ -180,8 +180,6 @@ def run_fzf(n: int) -> subprocess.CompletedProcess:
         'MAIN_PID': str(os.getpid())
     })
 
-    # FIX: We wrap the commands that use '&&' inside 'bash -c' 
-    # This ensures that even if Other Shell is your default shell(I'm using Nushell), 
     fzf_result = subprocess.run(
         ['fzf', '--multi', '--reverse',
             '--read0', '--gap', '--ansi',
