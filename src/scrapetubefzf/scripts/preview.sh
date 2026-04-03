@@ -41,9 +41,9 @@ if [ -f "$THUMB_PATH" ]; then
     elif command -v kitten >/dev/null 2>&1 && \
          { [[ -n "$KITTY_WINDOW_ID" ]] || [[ "$TERM_PROGRAM" == "ghostty" ]]; }; then
         kitten icat --clear --stdin=no --transfer-mode=memory \
-        --unicode-placeholder --scale-up \
-        --place="$((FZF_PREVIEW_COLUMNS))x$((FZF_PREVIEW_LINES))@0x0" \
-        "$THUMB_PATH"
+            --unicode-placeholder --scale-up \
+            --place="$((FZF_PREVIEW_COLUMNS))x$((FZF_PREVIEW_LINES))@0x0" \
+            "$THUMB_PATH"
     elif command -v chafa >/dev/null 2>&1; then
         chafa -s "$((FZF_PREVIEW_COLUMNS))x$((FZF_PREVIEW_LINES))" "$THUMB_PATH"
     elif command -v catimg >/dev/null 2>&1; then
