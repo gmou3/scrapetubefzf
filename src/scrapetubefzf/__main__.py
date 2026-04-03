@@ -198,7 +198,7 @@ def run_fzf(n: int) -> subprocess.CompletedProcess:
     )
 
     if ueberzug_fifo:
-        subprocess.run([f'bash -c "{CLEAR_SCRIPT}"'], shell=True, env=fzf_env) # Added bash wrapper here too
+        subprocess.run([CLEAR_SCRIPT], env=fzf_env)
         cleanup_ueberzug(ueberzug_fifo)
 
     return fzf_result
