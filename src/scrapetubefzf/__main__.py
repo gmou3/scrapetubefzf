@@ -203,6 +203,7 @@ def run_fzf(n: int) -> subprocess.CompletedProcess:
 
     return fzf_result
 
+
 def main():
     """Main function of scrapetubefzf."""
     # Parse arguments
