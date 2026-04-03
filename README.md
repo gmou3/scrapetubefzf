@@ -48,7 +48,7 @@ options:
 - [fzf](https://github.com/junegunn/fzf) 0.56.0+
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp)
 - [mpv](https://mpv.io/)
-- One of the following for thumbnails:
+- One of the following for thumbnails,in fallback order:
   - [ueberzugpp](https://github.com/jstkdng/ueberzugpp) (recommended, esp. on
     X11)
   - [kitty](https://github.com/kovidgoyal/kitty) (works within `kitty` and
