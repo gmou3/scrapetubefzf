@@ -191,7 +191,7 @@ def run_fzf(n: int) -> subprocess.CompletedProcess:
             '--bind', 'resize:refresh-preview',
             '--bind', f'left:reload({my_tail} "{VIDEOS_FILE}")+change-header(Tab: multi-select | Enter: play | Alt-d: download | →: channels)',
             '--bind', f'right:reload({my_tail} "{CHANNELS_FILE}")+change-header(Tab: multi-select | Enter: play | Alt-d: download | ←: videos)',
-            '--bind', f'alt-d:execute(bash -c "{CLEAR_SCRIPT} && {DOWNLOAD_SCRIPT} {{+}}")+abort'],
+            '--bind', f'alt-d:execute({CLEAR_SCRIPT} && {DOWNLOAD_SCRIPT} {{+}})+abort'],
         text=True,
         capture_output=True,
         env=fzf_env
