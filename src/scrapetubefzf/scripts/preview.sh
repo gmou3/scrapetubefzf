@@ -40,8 +40,8 @@ if [ -f "$THUMB_PATH" ]; then
         echo '{"action": "add", "identifier": "fzf", "x": '$FZF_PREVIEW_LEFT', "y": '$FZF_PREVIEW_TOP', "max_width": '$FZF_PREVIEW_COLUMNS', "max_height": '$FZF_PREVIEW_LINES', "path": "'$THUMB_PATH'"}' >> "$UEBERZUG_FIFO"
     elif command -v kitten >/dev/null 2>&1 && \
          { [[ -n "$KITTY_WINDOW_ID" ]] || \
-           [[ -n "$GHOSTTY_BIN_DIR" ]] || \ # Robust
-           [[ "$TERM" == *ghostty* ]] || \ # if xterm-* used
+           [[ -n "$GHOSTTY_BIN_DIR" ]] || \
+           [[ "$TERM" == *ghostty* ]] || \
            [[ "$TERM" == *kitty* ]]; }; then
         kitten icat --clear --stdin=no --transfer-mode=memory \
             --unicode-placeholder --scale-up \
